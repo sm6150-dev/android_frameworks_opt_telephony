@@ -324,6 +324,10 @@ public class ImsPhoneConnection extends Connection implements
                 capabilities = addCapability(capabilities,
                         Connection.Capability.SUPPORTS_VT_LOCAL_BIDIRECTIONAL);
                 break;
+            case ImsCallProfile.CALL_TYPE_VT_NODIR:
+                capabilities = removeCapability(capabilities,
+                        Connection.Capability.SUPPORTS_DOWNGRADE_TO_VOICE_LOCAL);
+                break;
         }
         return capabilities;
     }
@@ -340,6 +344,14 @@ public class ImsPhoneConnection extends Connection implements
                 capabilities = addCapability(capabilities,
                         Connection.Capability.SUPPORTS_VT_REMOTE_BIDIRECTIONAL);
                 break;
+            case ImsCallProfile.CALL_TYPE_VT_NODIR:
+                capabilities = removeCapability(capabilities,
+                        Connection.Capability.SUPPORTS_DOWNGRADE_TO_VOICE_REMOTE);
+                break;
+        }
+
+        if (remoteProfile.getMediaProfile().getRttMode() == ImsStreamMediaProfile.RTT_MODE_FULL) {
+            capabilities = addCapability(capabilities, Connection.Capability.SUPPORTS_RTT_REMOTE);
         }
         return capabilities;
     }
@@ -1224,9 +1236,10 @@ public class ImsPhoneConnection extends Connection implements
      * @param extras The ImsCallProfile extras.
      */
     private void updateImsCallRatFromExtras(Bundle extras) {
-        if (extras.containsKey(ImsCallProfile.EXTRA_CALL_NETWORK_TYPE)
+        if (extras != null &&
+            (extras.containsKey(ImsCallProfile.EXTRA_CALL_NETWORK_TYPE)
                 || extras.containsKey(ImsCallProfile.EXTRA_CALL_RAT_TYPE)
-                || extras.containsKey(ImsCallProfile.EXTRA_CALL_RAT_TYPE_ALT)) {
+                || extras.containsKey(ImsCallProfile.EXTRA_CALL_RAT_TYPE_ALT))) {
 
             ImsCall call = getImsCall();
             int networkType = TelephonyManager.NETWORK_TYPE_UNKNOWN;
@@ -1240,7 +1253,7 @@ public class ImsPhoneConnection extends Connection implements
     }
 
     private void updateEmergencyCallFromExtras(Bundle extras) {
-        if (extras.getBoolean(ImsCallProfile.EXTRA_EMERGENCY_CALL)) {
+        if (extras != null && extras.getBoolean(ImsCallProfile.EXTRA_EMERGENCY_CALL)) {
             setIsNetworkIdentifiedEmergencyCall(true);
         }
     }
